@@ -10,5 +10,5 @@ before_script:
   - go get
 
 script:
-  - go test -v ./...
+  - go test -v ./... --cover
   - go test -v -benchmem ./... -bench=. -run="none"
