@@ -4,6 +4,11 @@ go:
   - 1.11
   - 1.12
 
+
+
+before_script:
+  - go mod get
+
 script:
   - go test -v ./...
-  - go test -bench -v -benchmem ./...
+  - go test -v -benchmem ./... -bench=. -run="none"
