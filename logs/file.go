@@ -189,7 +189,7 @@ func (w *fileWriter) doRotate() (err error) {
 	_ = w.fileWriter.Close()
 	// use date-timestamp to rename old file
 	var fName string
-	if time.Now().Second() == w.dailyOpenTime.Second() {
+	if time.Now().Unix() == w.dailyOpenTime.Unix() {
 		fName = w.filenameOnly + "-" + w.dailyString + "-" +
 			strconv.FormatInt(w.dailyOpenTime.Unix(), 10) + "-" +
 			strconv.FormatInt(int64(w.dailyOpenTime.Nanosecond()), 10) + w.fileExt
