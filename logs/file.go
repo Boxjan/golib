@@ -105,7 +105,7 @@ func newFileAdapter(level string, helper string) (writer *fileWriter, err error)
 
 func (w *fileWriter) startLog() (err error) {
 
-	if err = os.MkdirAll(filepath.Dir(w.Filename), 755); err != nil {
+	if err = os.MkdirAll(filepath.Dir(w.Filename), os.FileMode(0755)); err != nil {
 		return
 	}
 
@@ -148,10 +148,10 @@ func (w *fileWriter) OpenFile() (*os.File, error) {
 	w.dailyString = w.dailyOpenTime.Format("2006-01-02")
 	w.writeFileName = w.getWriteFileName()
 
-	fd, err := os.OpenFile(w.writeFileName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(664))
+	fd, err := os.OpenFile(w.writeFileName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(0664))
 	if err == nil {
 		// Make sure file perm is user set perm cause of `os.OpenFile` will obey umask
-		_ = os.Chmod(w.writeFileName, os.FileMode(660))
+		_ = os.Chmod(w.writeFileName, os.FileMode(0664))
 	}
 
 	return fd, err
@@ -188,13 +188,22 @@ func (w *fileWriter) doRotate() (err error) {
 
 	_ = w.fileWriter.Close()
 	// use date-timestamp to rename old file
-	fName := w.filenameOnly + "-" + w.dailyString + "-" + strconv.FormatInt(w.dailyOpenTime.Unix(), 10) + w.fileExt
+	var fName string
+	if time.Now().Second() == w.dailyOpenTime.Second() {
+		fName = w.filenameOnly + "-" + w.dailyString + "-" +
+			strconv.FormatInt(w.dailyOpenTime.Unix(), 10) + "-" +
+			strconv.FormatInt(int64(w.dailyOpenTime.Nanosecond()), 10) + w.fileExt
+
+	} else {
+		fName = w.filenameOnly + "-" + w.dailyString + "-" + strconv.FormatInt(w.dailyOpenTime.Unix(), 10) + w.fileExt
+	}
+
 	err = os.Rename(w.writeFileName, fName)
 
 	if err != nil {
 		goto RESTART_LOG
 	}
-	err = os.Chmod(fName, os.FileMode(0440))
+	err = os.Chmod(fName, os.FileMode(0444))
 
 RESTART_LOG:
 	w.startLog()
