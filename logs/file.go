@@ -148,7 +148,7 @@ func (w *fileWriter) OpenFile() (*os.File, error) {
 	w.dailyString = w.dailyOpenTime.Format("2006-01-02")
 	w.writeFileName = w.getWriteFileName()
 
-	fd, err := os.OpenFile(w.writeFileName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(660))
+	fd, err := os.OpenFile(w.writeFileName, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.FileMode(664))
 	if err == nil {
 		// Make sure file perm is user set perm cause of `os.OpenFile` will obey umask
 		_ = os.Chmod(w.writeFileName, os.FileMode(660))

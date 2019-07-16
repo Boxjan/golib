@@ -66,7 +66,7 @@ type Logger struct {
 
 func NewLoggerWithCmdWriter() *Logger {
 	logger := NewLogger()
-	if nil != logger.AddAdapter(AdapterConsole, LevelInfoStr, "") {
+	if nil != logger.AddAdapter(AdapterConsole, LevelInfoStr, `{}`) {
 		panic("new console log writer fail!")
 	}
 	return logger
@@ -78,6 +78,10 @@ func NewLogger() *Logger {
 }
 
 func (logger *Logger) AddAdapter(adapterName string, level string, helper string) (err error) {
+	if helper == "" {
+		helper = `{}`
+	}
+
 	var oneWriter logWriter
 	switch adapterName {
 	case AdapterConsole:
