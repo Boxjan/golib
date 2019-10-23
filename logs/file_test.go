@@ -124,27 +124,70 @@ func TestMaxSizeRotateFile(t *testing.T) {
 	_ = os.RemoveAll("./maxsize/")
 }
 
-func BenchmarkFile(b *testing.B) {
+func TestAsyncSingleFileWriter(t *testing.T) {
 	log := NewLogger()
-	_ = log.AddAdapter("file", "debug", `{"filename":"./bench.log", "rotate":false`)
-
-	for i := 0; i < b.N; i++ {
-		log.Debug("debug")
-	}
-
-	log.Close()
-	_ = os.Remove("bench.log")
-}
-
-func BenchmarkFileAsync(b *testing.B) {
-	log := NewLogger()
-	_ = log.AddAdapter("file", "debug", `{"filename":"bench-async.log", "rotate":false`)
+	_ = log.AddAdapter("file", "trace", `{"filename":"./async.log", "rotate":false}`)
 	log.Async()
 
-	for i := 0; i < b.N; i++ {
-		log.Debug("debug")
+	testFileCalls(log)
+	log.Close()
+
+	f, err := os.Open("./async.log")
+	if err != nil {
+		t.Fatal(err)
+	}
+	b := bufio.NewReader(f)
+	lineNum := 0
+	for {
+		line, _, err := b.ReadLine()
+		if err != nil {
+			break
+		}
+		if len(line) > 0 {
+			lineNum++
+		}
+	}
+	var expected = LevelError
+	if lineNum != expected {
+		t.Fatal(lineNum, "not "+strconv.Itoa(expected)+" lines")
+	}
+	_ = f.Close()
+
+	_ = os.Remove("./async.log")
+}
+
+func TestAsyncMultipleFileWriter(t *testing.T) {
+	const fileCount = 5
+	log := NewLogger()
+	for i := 0; i < fileCount; i++ {
+		_ = log.AddAdapter("file", "trace", `{"filename":"./async/async`+strconv.Itoa(i)+`.log", "rotate":false}`)
+	}
+	log.Async()
+	testFileCalls(log)
+	log.Close()
+
+	for i := 0; i < fileCount; i++ {
+		f, err := os.Open("./async/async" + strconv.Itoa(i) + ".log")
+		if err != nil {
+			t.Fatal(err)
+		}
+		b := bufio.NewReader(f)
+		lineNum := 0
+		for {
+			line, _, err := b.ReadLine()
+			if err != nil {
+				break
+			}
+			if len(line) > 0 {
+				lineNum++
+			}
+		}
+		var expected = LevelError
+		if lineNum != expected {
+			t.Fatal("./async/async"+strconv.Itoa(i)+".log", lineNum, "not "+strconv.Itoa(expected)+" lines")
+		}
+		_ = f.Close()
 	}
 
-	log.Close()
-	_ = os.Remove("bench-async.log")
+	_ = os.RemoveAll("./async/")
 }

@@ -21,3 +21,13 @@ func TestConsole(t *testing.T) {
 	_ = log2.AddAdapter("console", LevelInfoStr, "")
 	testConsoleCalls(log1)
 }
+
+func TestAsyncSingleConsoleWriter(t *testing.T) {
+	log := NewLogger()
+	_ = log.AddAdapter("console", LevelTraceStr, ``)
+	log.Async()
+
+	testConsoleCalls(log)
+	log.Close()
+
+}

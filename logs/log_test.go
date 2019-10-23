@@ -2,6 +2,7 @@ package logs
 
 import (
 	"os"
+	"strconv"
 	"testing"
 	"time"
 )
@@ -43,46 +44,46 @@ func TestNewLoggerWithCmdWriter(t *testing.T) {
 	log.Close()
 }
 
+func BenchmarkGoFormat(b *testing.B) {
+	log := NewLogger()
+	var err error
+
+	err = log.AddAdapter("file", LevelTraceStr, `{"rotate":false, "filename":"go-format.log"}`)
+	if err != nil {
+		b.Error(err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		log.DebugF("debug %s", time.Now().Format("2006-01-02"))
+	}
+
+	log.Close()
+	_ = os.RemoveAll("go-format.log")
+}
+
+func BenchmarkGoFormatAsync(b *testing.B) {
+	log := NewLogger()
+	log.Async()
+	var err error
+
+	err = log.AddAdapter("file", LevelTraceStr, `{"rotate":false, "filename":"go-format-async.log"}`)
+	if err != nil {
+		b.Error(err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		log.DebugF("debug %s", time.Now().Format("2006-01-02"))
+	}
+
+	log.Close()
+	_ = os.RemoveAll("go-format-async.log")
+}
+
 func BenchmarkLoggerFormat(b *testing.B) {
 	log := NewLogger()
 	var err error
 
-	err = log.AddAdapter("file", LevelTraceStr, `{"rotate":false, "filename":"app.log"}`)
-	if err != nil {
-		b.Error(err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		log.DebugF("debug %s", time.Now().Format("2006-01-02"))
-	}
-
-	log.Close()
-	_ = os.RemoveAll("app.log")
-}
-
-func BenchmarkLoggerFormatGo(b *testing.B) {
-	log := NewLogger()
-	log.Async()
-	var err error
-
-	err = log.AddAdapter("file", LevelTraceStr, `{"rotate":false, "filename":"app.log"}`)
-	if err != nil {
-		b.Error(err)
-	}
-
-	for i := 0; i < b.N; i++ {
-		log.DebugF("debug %s", time.Now().Format("2006-01-02"))
-	}
-
-	log.Close()
-	_ = os.RemoveAll("app.log")
-}
-
-func BenchmarkLogger(b *testing.B) {
-	log := NewLogger()
-	var err error
-
-	err = log.AddAdapter("file", LevelTraceStr, `{"rotate":false, "filename":"app.log"}`)
+	err = log.AddAdapter("file", LevelTraceStr, `{"rotate":false, "filename":"logger-format.log"}`)
 	if err != nil {
 		b.Error(err)
 	}
@@ -92,15 +93,15 @@ func BenchmarkLogger(b *testing.B) {
 	}
 
 	log.Close()
-	_ = os.RemoveAll("app.log")
+	_ = os.RemoveAll("logger-format.log")
 }
 
-func BenchmarkLoggerGo(b *testing.B) {
+func BenchmarkLoggerFormatAsync(b *testing.B) {
 	log := NewLogger()
 	log.Async()
 	var err error
 
-	err = log.AddAdapter("file", LevelTraceStr, `{"rotate":false, "filename":"app.log"}`)
+	err = log.AddAdapter("file", LevelTraceStr, `{"rotate":false, "filename":"logger-format-async.log"}`)
 	if err != nil {
 		b.Error(err)
 	}
@@ -110,5 +111,38 @@ func BenchmarkLoggerGo(b *testing.B) {
 	}
 
 	log.Close()
-	_ = os.RemoveAll("app.log")
+	_ = os.RemoveAll("logger-format-async.log")
+}
+
+func BenchmarkMultipleWriter(b *testing.B) {
+	const fileCount = 4
+
+	log := NewLogger()
+	for i := 0; i < fileCount; i++ {
+		_ = log.AddAdapter("file", "trace", `{"filename":"./bench/bench-`+strconv.Itoa(i)+`.log", "rotate":false}`)
+	}
+
+	for i := 0; i < b.N; i++ {
+		log.Debug("debug")
+	}
+
+	log.Close()
+	_ = os.RemoveAll("./bench")
+}
+
+func BenchmarkMultipleWriterAsync(b *testing.B) {
+	const fileCount = 4
+
+	log := NewLogger()
+	for i := 0; i < fileCount; i++ {
+		_ = log.AddAdapter("file", "trace", `{"filename":"./async-bench/bench-`+strconv.Itoa(i)+`.log", "rotate":false}`)
+	}
+	log.Async()
+
+	for i := 0; i < b.N; i++ {
+		log.Debug("debug")
+	}
+
+	log.Close()
+	_ = os.RemoveAll("./async-bench")
 }
