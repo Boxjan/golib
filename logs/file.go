@@ -66,11 +66,11 @@ func (w *fileWriter) WriteMsg(message logMessage) (err error) {
 
 	w.Lock()
 	_, err = w.fileWriter.Write([]byte(msg))
+	w.Unlock()
 	if err == nil {
 		w.maxLinesCurLines++
 		w.maxSizeCurSize += len(msg)
 	}
-	w.Unlock()
 
 	return
 
