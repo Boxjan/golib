@@ -7,7 +7,6 @@ import (
 	"runtime"
 	"strings"
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -113,7 +112,23 @@ func (logger *Logger) Close() {
 	}
 }
 
+func (logger *Logger) writeMsg(message logMessage) {
+	if logger.asyncStart {
+		logger.logMsgCh <- message
+	} else {
+		for _, writer := range logger.recorder {
+			if err := writer.WriteMsg(message); err != nil {
+				_, _ = fmt.Fprint(os.Stderr, err)
+			}
+		}
+	}
+}
+
 func (logger *Logger) Async() {
+	logger.asyncWriteMsg()
+}
+
+func (logger *Logger) asyncWriteMsg() {
 	if logger.asyncStart == false {
 		logger.logMsgCh = make(chan logMessage, 128)
 		logger.wg.Add(1)
@@ -127,16 +142,11 @@ func (logger *Logger) Async() {
 					}
 					logger.wg.Done()
 					return
-				} else if logger.logMsgChLen == 0 {
-					continue
 				}
 
-				for logger.logMsgChLen > 0 {
-					atomic.AddInt32(&logger.logMsgChLen, -1)
-					for _, writer := range logger.recorder {
-						if writer.WriteMsg(message) != nil {
-
-						}
+				for _, writer := range logger.recorder {
+					if err := writer.WriteMsg(message); err != nil {
+						_, _ = fmt.Fprint(os.Stderr, err)
 					}
 				}
 
@@ -213,19 +223,6 @@ func (logger *Logger) saveLogFormat(level int, msg string, args ...interface{}) 
 	logger.writeMsg(singleLog)
 }
 
-func (logger *Logger) writeMsg(message logMessage) {
-	if logger.asyncStart {
-		atomic.AddInt32(&logger.logMsgChLen, 1)
-		logger.logMsgCh <- message
-	} else {
-		for _, writer := range logger.recorder {
-			if writer.WriteMsg(message) != nil {
-
-			}
-		}
-	}
-}
-
 func parseMessage(message string, args ...interface{}) string {
 
 	sizeOfArgs := len(args)
@@ -265,15 +262,15 @@ func logTracer() (t traceStruct) {
 
 func getLevelInt(levelStr string) int {
 	switch strings.ToLower(levelStr) {
-	case "trace":
+	case LevelTraceStr:
 		return LevelTrace
-	case "debug":
+	case LevelDebugStr:
 		return LevelDebug
-	case "info":
+	case LevelInfoStr:
 		return LevelInfo
-	case "warning":
+	case LevelWarningStr:
 		return LevelWarning
-	case "error":
+	case LevelErrorStr:
 		return LevelError
 	}
 	return -1
