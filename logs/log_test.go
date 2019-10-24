@@ -35,7 +35,27 @@ func TestLogger(t *testing.T) {
 }
 
 func TestNewLoggerWithCmdWriter(t *testing.T) {
-	log := NewLoggerWithCmdWriter()
+	log := NewLoggerWithCmdWriter(LevelInfoStr)
+	log.Error("error")
+	log.Warning("warning")
+	log.Info("informational")
+	log.Debug("debug")
+
+	log.Close()
+}
+
+func TestNewLoggerWithCmdWriterWithTraceLevel(t *testing.T) {
+	log := NewLoggerWithCmdWriterWithTraceLevel()
+	log.Error("error")
+	log.Warning("warning")
+	log.Info("informational")
+	log.Debug("debug")
+
+	log.Close()
+}
+
+func TestNewLoggerWithCmdWriterWithDebugLevelLevel(t *testing.T) {
+	log := NewLoggerWithCmdWriterWithDebugLevel()
 	log.Error("error")
 	log.Warning("warning")
 	log.Info("informational")

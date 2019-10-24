@@ -63,10 +63,26 @@ type Logger struct {
 	asyncStart bool
 }
 
-func NewLoggerWithCmdWriter() *Logger {
+func NewLoggerWithCmdWriter(level string) *Logger {
 	logger := NewLogger()
-	if nil != logger.AddAdapter(AdapterConsole, LevelInfoStr, `{}`) {
-		panic("new console log writer fail!")
+	if err := logger.AddAdapter(AdapterConsole, level, `{}`); err != nil {
+		_, _ = fmt.Fprint(os.Stderr, err)
+	}
+	return logger
+}
+
+func NewLoggerWithCmdWriterWithTraceLevel() *Logger {
+	logger := NewLogger()
+	if err := logger.AddAdapter(AdapterConsole, LevelTraceStr, `{}`); err != nil {
+		_, _ = fmt.Fprint(os.Stderr, err)
+	}
+	return logger
+}
+
+func NewLoggerWithCmdWriterWithDebugLevel() *Logger {
+	logger := NewLogger()
+	if err := logger.AddAdapter(AdapterConsole, LevelTraceStr, `{}`); err != nil {
+		_, _ = fmt.Fprint(os.Stderr, err)
 	}
 	return logger
 }
