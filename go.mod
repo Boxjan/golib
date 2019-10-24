@@ -1,3 +1,3 @@
-module github.com/Boxjan/golib
+module github.com/boxjan/golib
 
 go 1.11
