@@ -68,16 +68,6 @@ func TestNewLoggerWithCmdWriterWithTraceLevel(t *testing.T) {
 	log.Close()
 }
 
-func TestNewLoggerWithCmdWriterWithDebugLevelLevel(t *testing.T) {
-	log := NewLoggerWithCmdWriterWithDebugLevel()
-	log.Error("error")
-	log.Warning("warning")
-	log.Info("informational")
-	log.Debug("debug")
-
-	log.Close()
-}
-
 func BenchmarkGoFormat(b *testing.B) {
 	log := NewLogger()
 	var err error

@@ -84,14 +84,6 @@ func NewLoggerWithCmdWriterWithTraceLevel() *Logger {
 	return logger
 }
 
-func NewLoggerWithCmdWriterWithDebugLevel() *Logger {
-	logger := NewLogger()
-	if err := logger.AddAdapter(AdapterConsole, LevelTraceStr, `{}`); err != nil {
-		_, _ = fmt.Fprint(os.Stderr, err)
-	}
-	return logger
-}
-
 func NewLogger() *Logger {
 	return &Logger{
 		recorderCount: 0,
