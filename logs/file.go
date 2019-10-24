@@ -3,7 +3,6 @@ package logs
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -94,7 +93,7 @@ func newFileAdapter(level string, helper string) (writer *fileWriter, err error)
 	w.filenameOnly = strings.TrimSuffix(w.Filename, w.fileExt)
 
 	if w.level = getLevelInt(level); w.level == -1 {
-		err = errors.New("not support log record level")
+		err = NoSupportLevel
 		return
 	}
 

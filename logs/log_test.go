@@ -34,6 +34,20 @@ func TestLogger(t *testing.T) {
 	_ = os.RemoveAll("log/")
 }
 
+func TestLoggerNoSupport(t *testing.T) {
+	log := NewLogger()
+
+	if log.AddAdapter("MustNotExistAdapter", LevelInfoStr, "") != NoSupportAdapter {
+		t.Error("not support adapter but no get NoSupportAdapter")
+	}
+
+	if log.AddAdapter(AdapterConsole, "MustNotExistLevel", "") != NoSupportLevel {
+		t.Error("not support adapter but no get NoSupportLevel")
+	}
+
+	log.Warning("Yes~")
+}
+
 func TestNewLoggerWithCmdWriter(t *testing.T) {
 	log := NewLoggerWithCmdWriter(LevelInfoStr)
 	log.Error("error")

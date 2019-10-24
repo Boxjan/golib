@@ -2,7 +2,6 @@ package logs
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 )
@@ -52,7 +51,7 @@ func newConsoleAdapter(level string, helper string) (writer *consoleWriter, err 
 	}
 
 	if w.level = getLevelInt(level); w.level == -1 {
-		err = errors.New("not support log record level")
+		err = NoSupportLevel
 	}
 
 	writer = w

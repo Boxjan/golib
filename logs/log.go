@@ -1,6 +1,7 @@
 package logs
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
@@ -34,6 +35,9 @@ const (
 	AdapterConsole = "console"
 )
 
+var NoSupportLevel = errors.New("not support log record level")
+var NoSupportAdapter = errors.New("not support adapter")
+
 type traceStruct struct {
 	file     string
 	line     int
@@ -55,10 +59,11 @@ type logWriter interface {
 }
 
 type Logger struct {
-	recorder    []logWriter
-	logMsgCh    chan logMessage
-	logMsgChLen int32
-	wg          sync.WaitGroup
+	recorder      []logWriter
+	recorderCount int
+	logMsgCh      chan logMessage
+	logMsgChLen   int32
+	wg            sync.WaitGroup
 	sync.RWMutex
 	asyncStart bool
 }
@@ -88,8 +93,10 @@ func NewLoggerWithCmdWriterWithDebugLevel() *Logger {
 }
 
 func NewLogger() *Logger {
-	logger := Logger{asyncStart: false}
-	return &logger
+	return &Logger{
+		recorderCount: 0,
+		asyncStart:    false,
+	}
 }
 
 func (logger *Logger) AddAdapter(adapterName string, level string, helper string) (err error) {
@@ -107,13 +114,14 @@ func (logger *Logger) AddAdapter(adapterName string, level string, helper string
 		break
 
 	default:
-		_, _ = os.Stderr.Write([]byte("Not Support Adapter"))
+		err = NoSupportAdapter
 
 	}
 	if err != nil {
 		return
 	}
 	logger.recorder = append(logger.recorder, oneWriter)
+	logger.recorderCount++
 	return
 }
 
@@ -129,6 +137,11 @@ func (logger *Logger) Close() {
 }
 
 func (logger *Logger) writeMsg(message logMessage) {
+	if logger.recorderCount <= 0 {
+		_, _ = fmt.Fprint(os.Stderr, "no recorder in the logger\n")
+		return
+	}
+
 	if logger.asyncStart {
 		logger.logMsgCh <- message
 	} else {
