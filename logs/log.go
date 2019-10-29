@@ -64,8 +64,7 @@ type Logger struct {
 	logMsgCh      chan logMessage
 	logMsgChLen   int32
 	wg            sync.WaitGroup
-	sync.RWMutex
-	asyncStart bool
+	asyncStart    bool
 }
 
 func NewLoggerWithCmdWriter(level string) *Logger {
