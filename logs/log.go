@@ -59,12 +59,12 @@ type logWriter interface {
 }
 
 type Logger struct {
-	recorder      []logWriter
-	recorderCount int
-	logMsgCh      chan logMessage
-	logMsgChLen   int32
-	wg            sync.WaitGroup
-	asyncStart    bool
+	recorder       []logWriter
+	recorderCount  int
+	logMsgCh       chan logMessage
+	logMsgChClosed bool
+	wg             sync.WaitGroup
+	asyncStart     bool
 }
 
 func NewLoggerWithCmdWriter(level string) *Logger {
@@ -85,8 +85,9 @@ func NewLoggerWithCmdWriterWithTraceLevel() *Logger {
 
 func NewLogger() *Logger {
 	l := &Logger{
-		recorderCount: 0,
-		asyncStart:    false,
+		recorderCount:  0,
+		asyncStart:     false,
+		logMsgChClosed: true,
 	}
 	runtime.SetFinalizer(l, (*Logger).Close)
 	return l
@@ -120,7 +121,10 @@ func (logger *Logger) AddAdapter(adapterName string, level string, helper string
 
 func (logger *Logger) Close() {
 	if logger.asyncStart {
-		close(logger.logMsgCh)
+		if logger.logMsgChClosed == false {
+			close(logger.logMsgCh)
+		}
+		logger.logMsgChClosed = true
 		logger.wg.Wait()
 	} else {
 		for _, writer := range logger.recorder {
@@ -153,6 +157,7 @@ func (logger *Logger) Async() {
 func (logger *Logger) asyncWriteMsg() {
 	if logger.asyncStart == false {
 		logger.logMsgCh = make(chan logMessage, 128)
+		logger.logMsgChClosed = false
 		logger.wg.Add(1)
 
 		go func() {

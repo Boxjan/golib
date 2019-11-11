@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"runtime"
 )
 
 type consoleWriter struct {
@@ -54,8 +53,6 @@ func newConsoleAdapter(level string, helper string) (writer *consoleWriter, err 
 	if w.level = getLevelInt(level); w.level == -1 {
 		err = NoSupportLevel
 	}
-
-	runtime.SetFinalizer(w, (*consoleWriter).Destroy)
 
 	writer = w
 	return
