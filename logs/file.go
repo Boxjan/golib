@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -98,6 +99,11 @@ func newFileAdapter(level string, helper string) (writer *fileWriter, err error)
 	}
 
 	err = w.startLog()
+	if err != nil {
+		return
+	}
+
+	runtime.SetFinalizer(w, (*fileWriter).Destroy)
 	writer = w
 	return
 }

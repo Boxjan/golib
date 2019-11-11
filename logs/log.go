@@ -84,10 +84,12 @@ func NewLoggerWithCmdWriterWithTraceLevel() *Logger {
 }
 
 func NewLogger() *Logger {
-	return &Logger{
+	l := &Logger{
 		recorderCount: 0,
 		asyncStart:    false,
 	}
+	runtime.SetFinalizer(l, (*Logger).Close)
+	return l
 }
 
 func (logger *Logger) AddAdapter(adapterName string, level string, helper string) (err error) {
