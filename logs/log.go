@@ -28,7 +28,7 @@ const (
 	LevelErrorStr   = "error"
 )
 
-var levelString = []string{"trace", "debug", "info", "warning", "error"}
+var levelString = []string{"  [trace]", "  [debug]", "   [info]", "[warning]", "  [error]"}
 
 const (
 	AdapterFile    = "file"
@@ -261,7 +261,7 @@ func parseMessage(message string, args ...interface{}) string {
 		}
 	} else if sizeOfArgs < sizeOfPlace {
 		for i := sizeOfPlace - sizeOfArgs; i > 0; i-- {
-			args = append(args, "[No thing]")
+			args = append(args, "[Not thing]")
 		}
 	}
 

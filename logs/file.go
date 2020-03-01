@@ -57,10 +57,10 @@ func (w *fileWriter) WriteMsg(message logMessage) (err error) {
 
 	var msg string
 	if w.level == LevelTrace {
-		msg = fmt.Sprintf("%s [%s] [%s] [%s:%d] - %s\n", message.timeString, levelString[message.level],
+		msg = fmt.Sprintf("%s %s [%s] [%s:%d] - %s\n", message.timeString, levelString[message.level],
 			message.trace.funcName, message.trace.file, message.trace.line, message.message)
 	} else {
-		msg = fmt.Sprintf("%v [%v] - %v\n", message.timeString, levelString[message.level], message.message)
+		msg = fmt.Sprintf("%s %s - %v\n", message.timeString, levelString[message.level], message.message)
 	}
 
 	w.Lock()
